@@ -1,4 +1,4 @@
-package br.com.matricula.web.matricula_web;
+package br.com.matricula.web;
 
 import org.springframework.boot.SpringApplication;
 

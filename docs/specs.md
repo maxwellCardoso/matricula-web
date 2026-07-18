@@ -22,7 +22,7 @@
 ### Aluno
 | Campo | Tipo | Regras |
 |---|---|---|
-| id | UUID/Long | PK |
+| id | Long | PK |
 | nome | String | obrigatório |
 | email | String | obrigatório, único |
 | cpf | String | obrigatório, único |
@@ -31,14 +31,14 @@
 ### Curso
 | Campo | Tipo | Regras |
 |---|---|---|
-| id | UUID/Long | PK |
+| id | Long | PK |
 | nome | String | obrigatório |
 | descricao | String | opcional |
 
 ### Disciplina
 | Campo | Tipo | Regras |
 |---|---|---|
-| id | UUID/Long | PK |
+| id | Long | PK |
 | nome | String | obrigatório |
 | cursoId | FK -> Curso | obrigatório |
 | ano | Integer | obrigatório |
@@ -47,7 +47,7 @@
 ### Turma
 | Campo | Tipo | Regras |
 |---|---|---|
-| id | UUID/Long | PK |
+| id | Long | PK |
 | disciplinaId | FK -> Disciplina | obrigatório |
 | vagasTotais | Integer | obrigatório, > 0 |
 | vagasOcupadas | Integer | default 0, nunca > vagasTotais |
@@ -56,7 +56,7 @@
 ### Matrícula
 | Campo | Tipo | Regras |
 |---|---|---|
-| id | UUID/Long | PK |
+| id | Long | PK |
 | alunoId | FK -> Aluno | obrigatório |
 | turmaId | FK -> Turma | obrigatório |
 | status | Enum: PENDENTE, CONFIRMADA, CANCELADA | default PENDENTE |
@@ -78,7 +78,8 @@ cenários de teste. Cada história é referenciável no Cursor pelo código
    Dado dados válidos de aluno (nome, email único, cpf único)
    Quando o usuário cria, edita, lista ou remove um aluno
    Então a operação reflete no banco; email/cpf duplicado retorna 409;
-   campo obrigatório ausente retorna 400 (ver seção 2)
+   campo obrigatório ausente retorna 400 (ver seção 2); a listagem é
+   paginada (ver seção 5.1)
 
 ### US00.2 — CRUD de Curso
    Dado dados válidos de curso (nome)
@@ -172,14 +173,14 @@ cenários de teste. Cada história é referenciável no Cursor pelo código
 
 ```
 POST   /alunos
-GET    /alunos
+GET    /alunos?page=0&size=10&sort=nome,asc
 GET    /alunos/{id}
 PUT    /alunos/{id}
 DELETE /alunos/{id}
 
-POST   /cursos ... (CRUD análogo)
-POST   /disciplinas ... (CRUD análogo)
-POST   /turmas ... (CRUD análogo)
+POST   /cursos ... (CRUD análogo, listagem paginada)
+POST   /disciplinas ... (CRUD análogo, listagem paginada)
+POST   /turmas ... (CRUD análogo, listagem paginada)
 
 POST   /matriculas                     -> cria PENDENTE
 PATCH  /matriculas/{id}/confirmar      -> consome vaga
@@ -190,6 +191,39 @@ GET    /matriculas?turmaId=...
 
 Todas as respostas de erro seguem um formato padronizado (código, mensagem,
 timestamp, detalhes de validação quando aplicável) via `@ControllerAdvice`.
+
+### 5.1 Paginação nas listagens
+
+Todas as listagens de CRUD (`GET /alunos`, `GET /cursos`, `GET /disciplinas`,
+`GET /turmas`) usam paginação no backend (Spring Data `Pageable` +
+`findAll(Pageable)`). O frontend **não** deve carregar a lista inteira para
+paginar localmente.
+
+**Query params** (padrão Spring Data):
+
+| Param | Tipo | Default | Descrição |
+|---|---|---|---|
+| `page` | int | `0` | Índice da página (base 0) |
+| `size` | int | `10` | Quantidade de itens por página |
+| `sort` | string | `nome,asc` | Campo e direção (`campo,asc` ou `campo,desc`) |
+
+No Swagger UI, use `sort=nome` ou `sort=nome,asc`. Não deixe o placeholder
+`string` — isso gera erro de ordenação.
+
+**Formato da resposta** (`PageResponseDTO`):
+
+```json
+{
+  "content": [ { "...": "itens da página" } ],
+  "page": 0,
+  "size": 10,
+  "totalElements": 42,
+  "totalPages": 5,
+  "first": true,
+  "last": false
+}
+```
+
 ---
 ## 6. Casos de erro/borda a cobrir em teste
 

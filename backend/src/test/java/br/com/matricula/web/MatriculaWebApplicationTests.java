@@ -1,4 +1,4 @@
-package br.com.matricula.web.matricula_web;
+package br.com.matricula.web;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
