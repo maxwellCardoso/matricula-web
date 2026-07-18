@@ -15,7 +15,7 @@ Sistema de gestão de matrículas acadêmicas.
 |---|---|---|
 | JDK | 17+ | Backend local (`./mvnw`) |
 | Docker + Docker Compose | recente | Banco e/ou stack containerizada |
-| Node.js + Angular CLI | LTS / atual | Frontend local (quando existir) |
+| Node.js + Angular CLI | LTS / atual | Frontend local  |
 
 Garanta que as portas **5432** (Postgres), **8080** (API) e **4200** (frontend) estejam livres.
 
