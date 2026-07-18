@@ -27,6 +27,12 @@ public class GlobalExceptionHandler {
 				.body(erro(HttpStatus.CONFLICT, ex.getCodigo(), ex.getMessage(), List.of()));
 	}
 
+	@ExceptionHandler(ExclusaoBloqueadaVinculoAtivoException.class)
+	public ResponseEntity<ErroResponseDTO> handleExclusaoBloqueada(ExclusaoBloqueadaVinculoAtivoException ex) {
+		return ResponseEntity.status(HttpStatus.CONFLICT)
+				.body(erro(HttpStatus.CONFLICT, ex.getCodigo(), ex.getMessage(), List.of()));
+	}
+
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<ErroResponseDTO> handleValidacao(MethodArgumentNotValidException ex) {
 		List<String> detalhes = ex.getBindingResult().getFieldErrors().stream()

@@ -32,6 +32,7 @@
 | Campo | Tipo | Regras |
 |---|---|---|
 | id | Long | PK |
+| codCurso | String | obrigatório, único |
 | nome | String | obrigatório |
 | descricao | String | opcional |
 
@@ -39,19 +40,25 @@
 | Campo | Tipo | Regras |
 |---|---|---|
 | id | Long | PK |
+| codDisciplina | String | obrigatório, único |
 | nome | String | obrigatório |
 | cursoId | FK -> Curso | obrigatório |
 | ano | Integer | obrigatório |
 | periodo | Integer | obrigatório |
 
+> **Listagem**: inclui também `codCurso` e `nomeCurso` do curso vinculado.
+
 ### Turma
 | Campo | Tipo | Regras |
 |---|---|---|
 | id | Long | PK |
+| codTurma | String | obrigatório, único |
 | disciplinaId | FK -> Disciplina | obrigatório |
 | vagasTotais | Integer | obrigatório, > 0 |
 | vagasOcupadas | Integer | default 0, nunca > vagasTotais |
 | status | Enum: ABERTA, FECHADA | default ABERTA |
+
+> **Listagem**: inclui também `codDisciplina` e `nomeDisciplina` da disciplina vinculada.
 
 ### Matrícula
 | Campo | Tipo | Regras |
@@ -62,6 +69,8 @@
 | status | Enum: PENDENTE, CONFIRMADA, CANCELADA | default PENDENTE |
 | dataCriacao | Timestamp | auto |
 | dataAtualizacao | Timestamp | auto |
+
+> **Listagem**: inclui também `nomeAluno`, `emailAluno`, `cpfAluno` e `codTurma`.
 
 **Constraint única**: `(alunoId, turmaId)` — impede matrícula duplicada a
 nível de banco, não só de aplicação.

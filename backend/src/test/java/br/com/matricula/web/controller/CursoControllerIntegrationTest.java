@@ -21,19 +21,28 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import br.com.matricula.web.TestcontainersConfiguration;
-import br.com.matricula.web.repository.AlunoRepository;
+import br.com.matricula.web.domain.Disciplina;
+import br.com.matricula.web.repository.CursoRepository;
+import br.com.matricula.web.repository.DisciplinaRepository;
 import br.com.matricula.web.repository.MatriculaRepository;
+import br.com.matricula.web.repository.TurmaRepository;
 
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-class AlunoControllerIntegrationTest {
+class CursoControllerIntegrationTest {
 
 	@Autowired
 	private MockMvc mockMvc;
 
 	@Autowired
-	private AlunoRepository alunoRepository;
+	private CursoRepository cursoRepository;
+
+	@Autowired
+	private DisciplinaRepository disciplinaRepository;
+
+	@Autowired
+	private TurmaRepository turmaRepository;
 
 	@Autowired
 	private MatriculaRepository matriculaRepository;
@@ -41,36 +50,37 @@ class AlunoControllerIntegrationTest {
 	@BeforeEach
 	void setUp() {
 		matriculaRepository.deleteAll();
-		alunoRepository.deleteAll();
+		turmaRepository.deleteAll();
+		disciplinaRepository.deleteAll();
+		cursoRepository.deleteAll();
 	}
 
 	@Test
-	void deveCriarListarBuscarAtualizarERemoverAluno() throws Exception {
+	void deveCriarListarBuscarAtualizarERemoverCurso() throws Exception {
 		String payload = """
 				{
-				  "nome": "João Silva",
-				  "email": "joao@email.com",
-				  "cpf": "12345678901",
-				  "endereco": "Rua A, 100"
+				  "codCurso": "ES",
+				  "nome": "Engenharia de Software",
+				  "descricao": "Formação em desenvolvimento de sistemas"
 				}
 				""";
 
-		MvcResult criarResult = mockMvc.perform(post("/alunos")
+		MvcResult criarResult = mockMvc.perform(post("/cursos")
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(payload))
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.id").isNumber())
-				.andExpect(jsonPath("$.nome").value("João Silva"))
-				.andExpect(jsonPath("$.email").value("joao@email.com"))
-				.andExpect(jsonPath("$.cpf").value("12345678901"))
-				.andExpect(jsonPath("$.endereco").value("Rua A, 100"))
+				.andExpect(jsonPath("$.codCurso").value("ES"))
+				.andExpect(jsonPath("$.nome").value("Engenharia de Software"))
+				.andExpect(jsonPath("$.descricao").value("Formação em desenvolvimento de sistemas"))
 				.andReturn();
 
 		Long id = extrairId(criarResult);
 
-		mockMvc.perform(get("/alunos").param("page", "0").param("size", "10"))
+		mockMvc.perform(get("/cursos").param("page", "0").param("size", "10"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.content[0].id").value(id))
+				.andExpect(jsonPath("$.content[0].codCurso").value("ES"))
 				.andExpect(jsonPath("$.page").value(0))
 				.andExpect(jsonPath("$.size").value(10))
 				.andExpect(jsonPath("$.totalElements").value(1))
@@ -78,118 +88,99 @@ class AlunoControllerIntegrationTest {
 				.andExpect(jsonPath("$.first").value(true))
 				.andExpect(jsonPath("$.last").value(true));
 
-		mockMvc.perform(get("/alunos/{id}", id))
+		mockMvc.perform(get("/cursos/{id}", id))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.email").value("joao@email.com"));
+				.andExpect(jsonPath("$.codCurso").value("ES"))
+				.andExpect(jsonPath("$.nome").value("Engenharia de Software"));
 
 		String atualizacao = """
 				{
-				  "nome": "João Silva Atualizado",
-				  "email": "joao.atualizado@email.com",
-				  "cpf": "12345678901",
-				  "endereco": "Rua B, 200"
+				  "codCurso": "CC",
+				  "nome": "Ciência da Computação",
+				  "descricao": "Curso atualizado"
 				}
 				""";
 
-		mockMvc.perform(put("/alunos/{id}", id)
+		mockMvc.perform(put("/cursos/{id}", id)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(atualizacao))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.nome").value("João Silva Atualizado"))
-				.andExpect(jsonPath("$.email").value("joao.atualizado@email.com"))
-				.andExpect(jsonPath("$.endereco").value("Rua B, 200"));
+				.andExpect(jsonPath("$.codCurso").value("CC"))
+				.andExpect(jsonPath("$.nome").value("Ciência da Computação"))
+				.andExpect(jsonPath("$.descricao").value("Curso atualizado"));
 
-		mockMvc.perform(delete("/alunos/{id}", id))
+		mockMvc.perform(delete("/cursos/{id}", id))
 				.andExpect(status().isNoContent());
 
-		assertThat(alunoRepository.findById(id)).isEmpty();
+		assertThat(cursoRepository.findById(id)).isEmpty();
 	}
 
 	@Test
-	void deveRetornar400_quandoCamposObrigatoriosAusentes() throws Exception {
+	void deveRetornar400_quandoNomeAusente() throws Exception {
 		String payload = """
 				{
+				  "codCurso": "ES",
 				  "nome": "",
-				  "email": "",
-				  "cpf": ""
+				  "descricao": "Sem nome"
 				}
 				""";
 
-		mockMvc.perform(post("/alunos")
+		mockMvc.perform(post("/cursos")
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(payload))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.status").value(400))
 				.andExpect(jsonPath("$.codigo").value("VALIDACAO_FALHOU"))
 				.andExpect(jsonPath("$.detalhes").isArray())
-				.andExpect(jsonPath("$.detalhes", hasItem(containsString("nome"))))
-				.andExpect(jsonPath("$.detalhes", hasItem(containsString("email"))))
-				.andExpect(jsonPath("$.detalhes", hasItem(containsString("cpf"))));
+				.andExpect(jsonPath("$.detalhes", hasItem(containsString("nome"))));
 	}
 
 	@Test
-	void deveRetornar409_quandoEmailDuplicado() throws Exception {
-		criarAluno("João Silva", "joao@email.com", "12345678901");
-
-		String payload = """
-				{
-				  "nome": "Outro Aluno",
-				  "email": "joao@email.com",
-				  "cpf": "98765432100"
-				}
-				""";
-
-		mockMvc.perform(post("/alunos")
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(payload))
-				.andExpect(status().isConflict())
-				.andExpect(jsonPath("$.status").value(409))
-				.andExpect(jsonPath("$.codigo").value("EMAIL_DUPLICADO"));
-	}
-
-	@Test
-	void deveRetornar409_quandoCpfDuplicado() throws Exception {
-		criarAluno("João Silva", "joao@email.com", "12345678901");
-
-		String payload = """
-				{
-				  "nome": "Outro Aluno",
-				  "email": "outro@email.com",
-				  "cpf": "12345678901"
-				}
-				""";
-
-		mockMvc.perform(post("/alunos")
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(payload))
-				.andExpect(status().isConflict())
-				.andExpect(jsonPath("$.status").value(409))
-				.andExpect(jsonPath("$.codigo").value("CPF_DUPLICADO"));
-	}
-
-	@Test
-	void deveRetornar404_quandoAlunoNaoExiste() throws Exception {
+	void deveRetornar404_quandoCursoNaoExiste() throws Exception {
 		Long idInexistente = 999L;
 
-		mockMvc.perform(get("/alunos/{id}", idInexistente))
+		mockMvc.perform(get("/cursos/{id}", idInexistente))
 				.andExpect(status().isNotFound())
 				.andExpect(jsonPath("$.status").value(404))
 				.andExpect(jsonPath("$.codigo").value("ENTIDADE_NAO_ENCONTRADA"));
 	}
 
-	private void criarAluno(String nome, String email, String cpf) throws Exception {
+	@Test
+	void deveRetornar409_quandoExcluirCursoComDisciplinaVinculada() throws Exception {
+		Long cursoId = criarCurso("ES", "Engenharia de Software", "Descrição");
+
+		Disciplina disciplina = new Disciplina();
+		disciplina.setCodDisciplina("ALG");
+		disciplina.setNome("Algoritmos");
+		disciplina.setCursoId(cursoId);
+		disciplina.setAno(2026);
+		disciplina.setPeriodo(1);
+		disciplinaRepository.save(disciplina);
+
+		mockMvc.perform(delete("/cursos/{id}", cursoId))
+				.andExpect(status().isConflict())
+				.andExpect(jsonPath("$.status").value(409))
+				.andExpect(jsonPath("$.codigo").value("EXCLUSAO_BLOQUEADA_VINCULO_ATIVO"));
+
+		assertThat(cursoRepository.findById(cursoId)).isPresent();
+	}
+
+	private Long criarCurso(String codCurso, String nome, String descricao) throws Exception {
 		String payload = """
 				{
+				  "codCurso": "%s",
 				  "nome": "%s",
-				  "email": "%s",
-				  "cpf": "%s"
+				  "descricao": "%s"
 				}
-				""".formatted(nome, email, cpf);
+				""".formatted(codCurso, nome, descricao);
 
-		mockMvc.perform(post("/alunos")
+		MvcResult result = mockMvc.perform(post("/cursos")
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(payload))
-				.andExpect(status().isCreated());
+				.andExpect(status().isCreated())
+				.andReturn();
+
+		return extrairId(result);
 	}
 
 	private Long extrairId(MvcResult result) throws Exception {
