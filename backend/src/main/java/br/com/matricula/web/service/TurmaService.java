@@ -1,12 +1,5 @@
 package br.com.matricula.web.service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,26 +50,14 @@ public class TurmaService {
 
 	@Transactional(readOnly = true)
 	public PageResponseDTO<TurmaResponseDTO> listar(Pageable pageable) {
-		Page<Turma> page = turmaRepository.findAll(pageable);
-		Map<Long, Disciplina> disciplinasPorId = carregarDisciplinas(page.getContent());
-
-		Page<TurmaResponseDTO> responsePage = page.map(turma -> {
-			Disciplina disciplina = disciplinasPorId.get(turma.getDisciplinaId());
-			if (disciplina == null) {
-				throw new EntidadeNaoEncontradaException(
-						"Disciplina não encontrada com id: " + turma.getDisciplinaId());
-			}
-			return mapToResponseDTO(turma, disciplina);
-		});
-
-		return PageResponseDTO.from(responsePage);
+		return PageResponseDTO.from(turmaRepository.findDetalhadas(pageable));
 	}
 
 	@Transactional(readOnly = true)
 	public TurmaResponseDTO buscarPorId(Long id) {
-		Turma turma = buscarTurma(id);
-		Disciplina disciplina = buscarDisciplina(turma.getDisciplinaId());
-		return mapToResponseDTO(turma, disciplina);
+		return turmaRepository.findDetalhadaById(id)
+				.orElseThrow(() -> new EntidadeNaoEncontradaException(
+						"Turma não encontrada com id: " + id));
 	}
 
 	@Transactional
@@ -114,15 +95,6 @@ public class TurmaService {
 		return disciplinaRepository.findById(disciplinaId)
 				.orElseThrow(() -> new EntidadeNaoEncontradaException(
 						"Disciplina não encontrada com id: " + disciplinaId));
-	}
-
-	private Map<Long, Disciplina> carregarDisciplinas(List<Turma> turmas) {
-		Set<Long> disciplinaIds = turmas.stream()
-				.map(Turma::getDisciplinaId)
-				.collect(Collectors.toSet());
-
-		return disciplinaRepository.findAllById(disciplinaIds).stream()
-				.collect(Collectors.toMap(Disciplina::getId, Function.identity()));
 	}
 
 	private void validarUnicidadeCodigo(String codTurma, Long idAtual) {

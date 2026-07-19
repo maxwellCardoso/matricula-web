@@ -9,7 +9,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -93,12 +92,11 @@ class TurmaServiceTest {
 
 	@Test
 	void deveListarTurmasComPaginacaoEDadosDaDisciplina() {
-		Turma turma = turmaExistente(1L);
-		Disciplina disciplina = disciplinaExistente(turma.getDisciplinaId());
 		Pageable pageable = PageRequest.of(0, 10);
-		Page<Turma> page = new PageImpl<>(List.of(turma), pageable, 1);
-		when(turmaRepository.findAll(pageable)).thenReturn(page);
-		when(disciplinaRepository.findAllById(Set.of(turma.getDisciplinaId()))).thenReturn(List.of(disciplina));
+		TurmaResponseDTO dto = new TurmaResponseDTO(
+				1L, "T01", 5L, "ALG", "Algoritmos", 30, 0, StatusTurma.ABERTA);
+		Page<TurmaResponseDTO> page = new PageImpl<>(List.of(dto), pageable, 1);
+		when(turmaRepository.findDetalhadas(pageable)).thenReturn(page);
 
 		PageResponseDTO<TurmaResponseDTO> response = turmaService.listar(pageable);
 
@@ -116,25 +114,24 @@ class TurmaServiceTest {
 	@Test
 	void deveBuscarTurmaPorId_quandoExiste() {
 		Long id = 1L;
-		Turma turma = turmaExistente(id);
-		Disciplina disciplina = disciplinaExistente(turma.getDisciplinaId());
-		when(turmaRepository.findById(id)).thenReturn(Optional.of(turma));
-		when(disciplinaRepository.findById(turma.getDisciplinaId())).thenReturn(Optional.of(disciplina));
+		TurmaResponseDTO dto = new TurmaResponseDTO(
+				id, "T01", 5L, "ALG", "Algoritmos", 30, 0, StatusTurma.ABERTA);
+		when(turmaRepository.findDetalhadaById(id)).thenReturn(Optional.of(dto));
 
 		TurmaResponseDTO response = turmaService.buscarPorId(id);
 
 		assertThat(response.id()).isEqualTo(id);
-		assertThat(response.codTurma()).isEqualTo(turma.getCodTurma());
-		assertThat(response.disciplinaId()).isEqualTo(turma.getDisciplinaId());
-		assertThat(response.codDisciplina()).isEqualTo(disciplina.getCodDisciplina());
-		assertThat(response.nomeDisciplina()).isEqualTo(disciplina.getNome());
+		assertThat(response.codTurma()).isEqualTo("T01");
+		assertThat(response.disciplinaId()).isEqualTo(5L);
+		assertThat(response.codDisciplina()).isEqualTo("ALG");
+		assertThat(response.nomeDisciplina()).isEqualTo("Algoritmos");
 		assertThat(response.status()).isEqualTo(StatusTurma.ABERTA);
 	}
 
 	@Test
 	void deveLancarEntidadeNaoEncontrada_quandoBuscarIdInexistente() {
 		Long id = 99L;
-		when(turmaRepository.findById(id)).thenReturn(Optional.empty());
+		when(turmaRepository.findDetalhadaById(id)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> turmaService.buscarPorId(id))
 				.isInstanceOf(EntidadeNaoEncontradaException.class)

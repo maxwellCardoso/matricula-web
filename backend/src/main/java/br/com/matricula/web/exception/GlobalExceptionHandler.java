@@ -33,6 +33,24 @@ public class GlobalExceptionHandler {
 				.body(erro(HttpStatus.CONFLICT, ex.getCodigo(), ex.getMessage(), List.of()));
 	}
 
+	@ExceptionHandler(TurmaFechadaException.class)
+	public ResponseEntity<ErroResponseDTO> handleTurmaFechada(TurmaFechadaException ex) {
+		return ResponseEntity.status(HttpStatus.CONFLICT)
+				.body(erro(HttpStatus.CONFLICT, ex.getCodigo(), ex.getMessage(), List.of()));
+	}
+
+	@ExceptionHandler(MatriculaDuplicadaException.class)
+	public ResponseEntity<ErroResponseDTO> handleMatriculaDuplicada(MatriculaDuplicadaException ex) {
+		return ResponseEntity.status(HttpStatus.CONFLICT)
+				.body(erro(HttpStatus.CONFLICT, ex.getCodigo(), ex.getMessage(), List.of()));
+	}
+
+	@ExceptionHandler(VagaIndisponivelException.class)
+	public ResponseEntity<ErroResponseDTO> handleVagaIndisponivel(VagaIndisponivelException ex) {
+		return ResponseEntity.status(HttpStatus.CONFLICT)
+				.body(erro(HttpStatus.CONFLICT, ex.getCodigo(), ex.getMessage(), List.of()));
+	}
+
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<ErroResponseDTO> handleValidacao(MethodArgumentNotValidException ex) {
 		List<String> detalhes = ex.getBindingResult().getFieldErrors().stream()

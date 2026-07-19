@@ -9,7 +9,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -91,12 +90,11 @@ class DisciplinaServiceTest {
 
 	@Test
 	void deveListarDisciplinasComPaginacaoEDadosDoCurso() {
-		Disciplina disciplina = disciplinaExistente(1L);
-		Curso curso = cursoExistente(disciplina.getCursoId());
 		Pageable pageable = PageRequest.of(0, 10);
-		Page<Disciplina> page = new PageImpl<>(List.of(disciplina), pageable, 1);
-		when(disciplinaRepository.findAll(pageable)).thenReturn(page);
-		when(cursoRepository.findAllById(Set.of(disciplina.getCursoId()))).thenReturn(List.of(curso));
+		DisciplinaResponseDTO dto = new DisciplinaResponseDTO(
+				1L, "ALG", "Algoritmos", 5L, "ES", "Engenharia de Software", 2026, 1);
+		Page<DisciplinaResponseDTO> page = new PageImpl<>(List.of(dto), pageable, 1);
+		when(disciplinaRepository.findDetalhadas(pageable)).thenReturn(page);
 
 		PageResponseDTO<DisciplinaResponseDTO> response = disciplinaService.listar(pageable);
 
@@ -114,24 +112,23 @@ class DisciplinaServiceTest {
 	@Test
 	void deveBuscarDisciplinaPorId_quandoExiste() {
 		Long id = 1L;
-		Disciplina disciplina = disciplinaExistente(id);
-		Curso curso = cursoExistente(disciplina.getCursoId());
-		when(disciplinaRepository.findById(id)).thenReturn(Optional.of(disciplina));
-		when(cursoRepository.findById(disciplina.getCursoId())).thenReturn(Optional.of(curso));
+		DisciplinaResponseDTO dto = new DisciplinaResponseDTO(
+				id, "ALG", "Algoritmos", 5L, "ES", "Engenharia de Software", 2026, 1);
+		when(disciplinaRepository.findDetalhadaById(id)).thenReturn(Optional.of(dto));
 
 		DisciplinaResponseDTO response = disciplinaService.buscarPorId(id);
 
 		assertThat(response.id()).isEqualTo(id);
-		assertThat(response.codDisciplina()).isEqualTo(disciplina.getCodDisciplina());
-		assertThat(response.nome()).isEqualTo(disciplina.getNome());
-		assertThat(response.codCurso()).isEqualTo(curso.getCodCurso());
-		assertThat(response.nomeCurso()).isEqualTo(curso.getNome());
+		assertThat(response.codDisciplina()).isEqualTo("ALG");
+		assertThat(response.nome()).isEqualTo("Algoritmos");
+		assertThat(response.codCurso()).isEqualTo("ES");
+		assertThat(response.nomeCurso()).isEqualTo("Engenharia de Software");
 	}
 
 	@Test
 	void deveLancarEntidadeNaoEncontrada_quandoBuscarIdInexistente() {
 		Long id = 99L;
-		when(disciplinaRepository.findById(id)).thenReturn(Optional.empty());
+		when(disciplinaRepository.findDetalhadaById(id)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> disciplinaService.buscarPorId(id))
 				.isInstanceOf(EntidadeNaoEncontradaException.class)
