@@ -51,6 +51,12 @@ public class GlobalExceptionHandler {
 				.body(erro(HttpStatus.CONFLICT, ex.getCodigo(), ex.getMessage(), List.of()));
 	}
 
+	@ExceptionHandler(MatriculaJaCanceladaException.class)
+	public ResponseEntity<ErroResponseDTO> handleMatriculaJaCancelada(MatriculaJaCanceladaException ex) {
+		return ResponseEntity.status(HttpStatus.CONFLICT)
+				.body(erro(HttpStatus.CONFLICT, ex.getCodigo(), ex.getMessage(), List.of()));
+	}
+
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<ErroResponseDTO> handleValidacao(MethodArgumentNotValidException ex) {
 		List<String> detalhes = ex.getBindingResult().getFieldErrors().stream()

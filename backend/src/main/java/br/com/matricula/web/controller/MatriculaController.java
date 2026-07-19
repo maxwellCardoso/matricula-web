@@ -1,7 +1,9 @@
 package br.com.matricula.web.controller;
 
-import java.util.List;
-
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.matricula.web.dto.request.MatriculaRequestDTO;
 import br.com.matricula.web.dto.response.MatriculaResponseDTO;
+import br.com.matricula.web.dto.response.PageResponseDTO;
 import br.com.matricula.web.service.MatriculaService;
 import jakarta.validation.Valid;
 
@@ -40,10 +43,17 @@ public class MatriculaController {
 		return ResponseEntity.ok(matriculaService.confirmar(id));
 	}
 
+	@PatchMapping("/{id}/cancelar")
+	public ResponseEntity<MatriculaResponseDTO> cancelar(@PathVariable Long id) {
+		return ResponseEntity.ok(matriculaService.cancelar(id));
+	}
+
 	@GetMapping
-	public ResponseEntity<List<MatriculaResponseDTO>> listar(
+	public ResponseEntity<PageResponseDTO<MatriculaResponseDTO>> listar(
 			@RequestParam(required = false) Long alunoId,
-			@RequestParam(required = false) Long turmaId) {
-		return ResponseEntity.ok(matriculaService.listar(alunoId, turmaId));
+			@RequestParam(required = false) Long turmaId,
+			@ParameterObject
+			@PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+		return ResponseEntity.ok(matriculaService.listar(alunoId, turmaId, pageable));
 	}
 }

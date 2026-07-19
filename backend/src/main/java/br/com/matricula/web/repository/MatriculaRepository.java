@@ -1,8 +1,9 @@
 package br.com.matricula.web.repository;
 
-import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -54,7 +55,8 @@ public interface MatriculaRepository extends JpaRepository<Matricula, Long> {
 			WHERE (:alunoId IS NULL OR m.alunoId = :alunoId)
 			  AND (:turmaId IS NULL OR m.turmaId = :turmaId)
 			""")
-	List<MatriculaResponseDTO> findDetalhadas(
+	Page<MatriculaResponseDTO> findDetalhadas(
 			@Param("alunoId") Long alunoId,
-			@Param("turmaId") Long turmaId);
+			@Param("turmaId") Long turmaId,
+			Pageable pageable);
 }

@@ -1,7 +1,6 @@
 package br.com.matricula.web.service;
 
-import java.util.List;
-
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,8 +11,10 @@ import br.com.matricula.web.domain.StatusTurma;
 import br.com.matricula.web.domain.Turma;
 import br.com.matricula.web.dto.request.MatriculaRequestDTO;
 import br.com.matricula.web.dto.response.MatriculaResponseDTO;
+import br.com.matricula.web.dto.response.PageResponseDTO;
 import br.com.matricula.web.exception.EntidadeNaoEncontradaException;
 import br.com.matricula.web.exception.MatriculaDuplicadaException;
+import br.com.matricula.web.exception.MatriculaJaCanceladaException;
 import br.com.matricula.web.exception.RecursoDuplicadoException;
 import br.com.matricula.web.exception.TurmaFechadaException;
 import br.com.matricula.web.exception.VagaIndisponivelException;
@@ -73,9 +74,31 @@ public class MatriculaService {
 						"Matrícula não encontrada com id: " + id));
 	}
 
+	@Transactional
+	public MatriculaResponseDTO cancelar(Long id) {
+		Matricula matricula = buscarMatricula(id);
+		validarMatriculaNaoCancelada(matricula);
+
+		if (matricula.getStatus() == StatusMatricula.CONFIRMADA) {
+			int linhasAfetadas = turmaRepository.decrementarVagasOcupadas(matricula.getTurmaId());
+			if (linhasAfetadas == 0) {
+				throw new RecursoDuplicadoException(
+						"INCONSISTENCIA_VAGAS",
+						"Não foi possível liberar a vaga desta matrícula.");
+			}
+		}
+
+		matricula.setStatus(StatusMatricula.CANCELADA);
+		matriculaRepository.save(matricula);
+
+		return matriculaRepository.findDetalhadaById(id)
+				.orElseThrow(() -> new EntidadeNaoEncontradaException(
+						"Matrícula não encontrada com id: " + id));
+	}
+
 	@Transactional(readOnly = true)
-	public List<MatriculaResponseDTO> listar(Long alunoId, Long turmaId) {
-		return matriculaRepository.findDetalhadas(alunoId, turmaId);
+	public PageResponseDTO<MatriculaResponseDTO> listar(Long alunoId, Long turmaId, Pageable pageable) {
+		return PageResponseDTO.from(matriculaRepository.findDetalhadas(alunoId, turmaId, pageable));
 	}
 
 	private Matricula buscarMatricula(Long id) {
@@ -123,6 +146,13 @@ public class MatriculaService {
 			throw new RecursoDuplicadoException(
 					"MATRICULA_STATUS_INVALIDO",
 					"Somente matrículas com status PENDENTE podem ser confirmadas.");
+		}
+	}
+
+	private void validarMatriculaNaoCancelada(Matricula matricula) {
+		if (matricula.getStatus() == StatusMatricula.CANCELADA) {
+			throw new MatriculaJaCanceladaException(
+					"A matrícula já está cancelada.");
 		}
 	}
 

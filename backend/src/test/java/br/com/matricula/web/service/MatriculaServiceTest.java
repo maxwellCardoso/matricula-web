@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import br.com.matricula.web.domain.Aluno;
 import br.com.matricula.web.domain.Matricula;
@@ -24,8 +29,10 @@ import br.com.matricula.web.domain.StatusTurma;
 import br.com.matricula.web.domain.Turma;
 import br.com.matricula.web.dto.request.MatriculaRequestDTO;
 import br.com.matricula.web.dto.response.MatriculaResponseDTO;
+import br.com.matricula.web.dto.response.PageResponseDTO;
 import br.com.matricula.web.exception.EntidadeNaoEncontradaException;
 import br.com.matricula.web.exception.MatriculaDuplicadaException;
+import br.com.matricula.web.exception.MatriculaJaCanceladaException;
 import br.com.matricula.web.exception.TurmaFechadaException;
 import br.com.matricula.web.exception.VagaIndisponivelException;
 import br.com.matricula.web.repository.AlunoRepository;
@@ -173,6 +180,95 @@ class MatriculaServiceTest {
 		verify(matriculaRepository, never()).save(any());
 	}
 
+	@Test
+	void deveCancelarMatriculaConfirmada_eDecrementarVaga() {
+		Long matriculaId = 100L;
+		Matricula matricula = matriculaComStatus(matriculaId, 1L, 10L, StatusMatricula.CONFIRMADA);
+		MatriculaResponseDTO detalhada = responseComStatus(
+				matriculaId, matricula.getAlunoId(), matricula.getTurmaId(), StatusMatricula.CANCELADA);
+
+		when(matriculaRepository.findById(matriculaId)).thenReturn(Optional.of(matricula));
+		when(turmaRepository.decrementarVagasOcupadas(matricula.getTurmaId())).thenReturn(1);
+		when(matriculaRepository.save(matricula)).thenReturn(matricula);
+		when(matriculaRepository.findDetalhadaById(matriculaId)).thenReturn(Optional.of(detalhada));
+
+		MatriculaResponseDTO response = matriculaService.cancelar(matriculaId);
+
+		assertThat(response.status()).isEqualTo(StatusMatricula.CANCELADA);
+		assertThat(matricula.getStatus()).isEqualTo(StatusMatricula.CANCELADA);
+		verify(turmaRepository).decrementarVagasOcupadas(matricula.getTurmaId());
+	}
+
+	@Test
+	void deveCancelarMatriculaPendente_semAlterarVagas() {
+		Long matriculaId = 100L;
+		Matricula matricula = matriculaPendente(matriculaId, 1L, 10L);
+		MatriculaResponseDTO detalhada = responseComStatus(
+				matriculaId, matricula.getAlunoId(), matricula.getTurmaId(), StatusMatricula.CANCELADA);
+
+		when(matriculaRepository.findById(matriculaId)).thenReturn(Optional.of(matricula));
+		when(matriculaRepository.save(matricula)).thenReturn(matricula);
+		when(matriculaRepository.findDetalhadaById(matriculaId)).thenReturn(Optional.of(detalhada));
+
+		MatriculaResponseDTO response = matriculaService.cancelar(matriculaId);
+
+		assertThat(response.status()).isEqualTo(StatusMatricula.CANCELADA);
+		assertThat(matricula.getStatus()).isEqualTo(StatusMatricula.CANCELADA);
+		verify(turmaRepository, never()).decrementarVagasOcupadas(any());
+	}
+
+	@Test
+	void deveLancarMatriculaJaCancelada_quandoCancelarNovamente() {
+		Long matriculaId = 100L;
+		Matricula matricula = matriculaComStatus(matriculaId, 1L, 10L, StatusMatricula.CANCELADA);
+
+		when(matriculaRepository.findById(matriculaId)).thenReturn(Optional.of(matricula));
+
+		assertThatThrownBy(() -> matriculaService.cancelar(matriculaId))
+				.isInstanceOf(MatriculaJaCanceladaException.class)
+				.extracting(ex -> ((MatriculaJaCanceladaException) ex).getCodigo())
+				.isEqualTo("MATRICULA_JA_CANCELADA");
+
+		verify(matriculaRepository, never()).save(any());
+		verify(turmaRepository, never()).decrementarVagasOcupadas(any());
+	}
+
+	@Test
+	void deveListarMatriculasPorAluno() {
+		Long alunoId = 1L;
+		Pageable pageable = PageRequest.of(0, 10);
+		MatriculaResponseDTO detalhada = responseComStatus(100L, alunoId, 10L, StatusMatricula.PENDENTE);
+		Page<MatriculaResponseDTO> page = new PageImpl<>(List.of(detalhada), pageable, 1);
+
+		when(matriculaRepository.findDetalhadas(alunoId, null, pageable)).thenReturn(page);
+
+		PageResponseDTO<MatriculaResponseDTO> response = matriculaService.listar(alunoId, null, pageable);
+
+		assertThat(response.content()).hasSize(1);
+		assertThat(response.content().get(0).alunoId()).isEqualTo(alunoId);
+		assertThat(response.content().get(0).status()).isEqualTo(StatusMatricula.PENDENTE);
+		assertThat(response.totalElements()).isEqualTo(1);
+		verify(matriculaRepository).findDetalhadas(alunoId, null, pageable);
+	}
+
+	@Test
+	void deveListarMatriculasPorTurma() {
+		Long turmaId = 10L;
+		Pageable pageable = PageRequest.of(0, 10);
+		MatriculaResponseDTO detalhada = responseComStatus(100L, 1L, turmaId, StatusMatricula.CONFIRMADA);
+		Page<MatriculaResponseDTO> page = new PageImpl<>(List.of(detalhada), pageable, 1);
+
+		when(matriculaRepository.findDetalhadas(null, turmaId, pageable)).thenReturn(page);
+
+		PageResponseDTO<MatriculaResponseDTO> response = matriculaService.listar(null, turmaId, pageable);
+
+		assertThat(response.content()).hasSize(1);
+		assertThat(response.content().get(0).turmaId()).isEqualTo(turmaId);
+		assertThat(response.content().get(0).status()).isEqualTo(StatusMatricula.CONFIRMADA);
+		assertThat(response.totalElements()).isEqualTo(1);
+		verify(matriculaRepository).findDetalhadas(null, turmaId, pageable);
+	}
+
 	private Aluno alunoExistente(Long id) {
 		Aluno aluno = new Aluno();
 		aluno.setId(id);
@@ -194,15 +290,24 @@ class MatriculaServiceTest {
 	}
 
 	private Matricula matriculaPendente(Long id, Long alunoId, Long turmaId) {
+		return matriculaComStatus(id, alunoId, turmaId, StatusMatricula.PENDENTE);
+	}
+
+	private Matricula matriculaComStatus(Long id, Long alunoId, Long turmaId, StatusMatricula status) {
 		Matricula matricula = new Matricula();
 		matricula.setId(id);
 		matricula.setAlunoId(alunoId);
 		matricula.setTurmaId(turmaId);
-		matricula.setStatus(StatusMatricula.PENDENTE);
+		matricula.setStatus(status);
 		return matricula;
 	}
 
 	private MatriculaResponseDTO responseConfirmada(Long id, Long alunoId, Long turmaId) {
+		return responseComStatus(id, alunoId, turmaId, StatusMatricula.CONFIRMADA);
+	}
+
+	private MatriculaResponseDTO responseComStatus(
+			Long id, Long alunoId, Long turmaId, StatusMatricula status) {
 		LocalDateTime agora = LocalDateTime.now();
 		return new MatriculaResponseDTO(
 				id,
@@ -212,7 +317,7 @@ class MatriculaServiceTest {
 				"12345678901",
 				turmaId,
 				"T01",
-				StatusMatricula.CONFIRMADA,
+				status,
 				agora,
 				agora);
 	}

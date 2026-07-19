@@ -157,7 +157,6 @@ cenários de teste. Cada história é referenciável no Cursor pelo código
    Dado `vagasOcupadas == vagasTotais - 1`
    Quando duas confirmações simultâneas chegam
    Então apenas uma é bem-sucedida; a outra recebe `VAGA_INDISPONIVEL`
-   *(cenário-chave para o teste de integração e para a explicação na entrevista)*
 
 ### US09 — Consulta de matrículas por aluno
    Dado um alunoId
@@ -169,8 +168,7 @@ cenários de teste. Cada história é referenciável no Cursor pelo código
 
 ---
 
-## 4. Proteção da regra de vagas (decisão técnica central)
-
+## 4. Proteção da regra de vagas 
 - Confirmação e cancelamento são `@Transactional`.
 - Confirmação usa `UPDATE turma SET vagas_ocupadas = vagas_ocupadas + 1
   WHERE id = :id AND vagas_ocupadas < vagas_totais`, checando linhas

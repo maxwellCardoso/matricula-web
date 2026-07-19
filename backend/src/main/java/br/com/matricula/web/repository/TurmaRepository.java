@@ -33,6 +33,19 @@ public interface TurmaRepository extends JpaRepository<Turma, Long> {
 			""")
 	int incrementarVagasOcupadasSeDisponivel(@Param("id") Long id);
 
+	/**
+	 * UPDATE atômico: libera vaga no cancelamento de matrícula CONFIRMADA.
+	 * Retorna 0 se não houver vaga ocupada para liberar.
+	 */
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("""
+			UPDATE Turma t
+			SET t.vagasOcupadas = t.vagasOcupadas - 1
+			WHERE t.id = :id
+			  AND t.vagasOcupadas > 0
+			""")
+	int decrementarVagasOcupadas(@Param("id") Long id);
+
 	@Query("""
 			SELECT new br.com.matricula.web.dto.response.TurmaResponseDTO(
 				t.id,
