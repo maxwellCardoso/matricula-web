@@ -1,0 +1,104 @@
+.curso-list {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.curso-list__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.curso-list__header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.curso-list__novo {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 0.875rem;
+  border-radius: 0.375rem;
+  background: #2563eb;
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.curso-list__novo:hover {
+  background: #1d4ed8;
+}
+
+.curso-list__empty {
+  margin: 2rem 0;
+  text-align: center;
+  color: #64748b;
+}
+
+.curso-list__table-wrapper {
+  overflow-x: auto;
+}
+
+.curso-list__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.curso-list__table th,
+.curso-list__table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.curso-list__table th {
+  font-weight: 600;
+  color: #475569;
+  background: #f8fafc;
+}
+
+.curso-list__table td {
+  color: #0f172a;
+}
+
+.curso-list__actions {
+  white-space: nowrap;
+}
+
+.curso-list__actions-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.curso-list__actions a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.curso-list__actions a:hover {
+  text-decoration: underline;
+}
+
+.curso-list__excluir {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #dc2626;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.curso-list__excluir:hover {
+  text-decoration: underline;
+}

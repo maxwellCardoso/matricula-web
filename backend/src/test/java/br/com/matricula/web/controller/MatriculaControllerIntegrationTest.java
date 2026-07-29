@@ -152,6 +152,28 @@ class MatriculaControllerIntegrationTest {
 	}
 
 	@Test
+	void devePermitirMatricularNovamenteAposCancelamento() throws Exception {
+		Long alunoId = criarAluno("Ana Silva", "ana.silva@email.com", "12345678901");
+		Long turmaId = criarTurma("T01", 30);
+		Long matriculaId = matricular(alunoId, turmaId);
+
+		mockMvc.perform(patch("/matriculas/{id}/cancelar", matriculaId))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("CANCELADA"));
+
+		mockMvc.perform(post("/matriculas")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(payloadMatricula(alunoId, turmaId)))
+				.andExpect(status().isCreated())
+				.andExpect(jsonPath("$.id").value(matriculaId))
+				.andExpect(jsonPath("$.status").value("PENDENTE"));
+
+		assertThat(matriculaRepository.count()).isEqualTo(1);
+		assertThat(matriculaRepository.findById(matriculaId).orElseThrow().getStatus())
+				.isEqualTo(StatusMatricula.PENDENTE);
+	}
+
+	@Test
 	void deveRetornarNotFound_quandoAlunoInexistente() throws Exception {
 		Long turmaId = criarTurma("T01", 30);
 

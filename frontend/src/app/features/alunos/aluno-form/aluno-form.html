@@ -1,0 +1,58 @@
+<section class="aluno-form">
+  <header class="aluno-form__header">
+    <h1>{{ isEdit() ? 'Editar aluno' : 'Novo aluno' }}</h1>
+    <a routerLink="/alunos" class="aluno-form__voltar">Voltar</a>
+  </header>
+
+  @if (loading()) {
+    <app-loading />
+  } @else {
+    <form class="aluno-form__form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <div class="aluno-form__field">
+        <label for="nome">Nome</label>
+        <input id="nome" type="text" formControlName="nome" autocomplete="name" />
+        @if (fieldError('nome'); as error) {
+          <span class="aluno-form__error">{{ error }}</span>
+        }
+      </div>
+
+      <div class="aluno-form__field">
+        <label for="email">E-mail</label>
+        <input id="email" type="email" formControlName="email" autocomplete="email" />
+        @if (fieldError('email'); as error) {
+          <span class="aluno-form__error">{{ error }}</span>
+        }
+      </div>
+
+      <div class="aluno-form__field">
+        <label for="cpf">CPF</label>
+        <input
+          id="cpf"
+          type="text"
+          formControlName="cpf"
+          inputmode="numeric"
+          maxlength="11"
+          autocomplete="off"
+        />
+        @if (fieldError('cpf'); as error) {
+          <span class="aluno-form__error">{{ error }}</span>
+        }
+      </div>
+
+      <div class="aluno-form__field">
+        <label for="endereco">Endereço</label>
+        <input id="endereco" type="text" formControlName="endereco" autocomplete="street-address" />
+        @if (fieldError('endereco'); as error) {
+          <span class="aluno-form__error">{{ error }}</span>
+        }
+      </div>
+
+      <div class="aluno-form__actions">
+        <a routerLink="/alunos" class="aluno-form__cancelar">Cancelar</a>
+        <button type="submit" class="aluno-form__salvar" [disabled]="saving()">
+          {{ saving() ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </form>
+  }
+</section>

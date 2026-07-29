@@ -47,9 +47,15 @@ public class MatriculaService {
 		validarVagaDisponivel(turma);
 		validarMatriculaDuplicada(matriculaRequestDTO.alunoId(), matriculaRequestDTO.turmaId());
 
-		Matricula matricula = new Matricula();
-		matricula.setAlunoId(aluno.getId());
-		matricula.setTurmaId(turma.getId());
+		Matricula matricula = matriculaRepository
+				.findByAlunoIdAndTurmaId(matriculaRequestDTO.alunoId(), matriculaRequestDTO.turmaId())
+				.orElseGet(() -> {
+					Matricula nova = new Matricula();
+					nova.setAlunoId(aluno.getId());
+					nova.setTurmaId(turma.getId());
+					return nova;
+				});
+
 		matricula.setStatus(StatusMatricula.PENDENTE);
 
 		return mapToResponseDTO(matriculaRepository.save(matricula), aluno, turma);

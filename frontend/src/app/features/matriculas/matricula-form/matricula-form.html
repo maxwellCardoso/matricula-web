@@ -1,0 +1,49 @@
+<section class="matricula-form">
+  <header class="matricula-form__header">
+    <h1>Nova matrícula</h1>
+    <a routerLink="/matriculas" class="matricula-form__voltar">Voltar</a>
+  </header>
+
+  @if (loading()) {
+    <app-loading />
+  } @else {
+    <form class="matricula-form__form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      @if (businessError(); as error) {
+        <div class="matricula-form__business-error" role="alert">{{ error }}</div>
+      }
+
+      <div class="matricula-form__field">
+        <label for="alunoId">Aluno</label>
+        <select id="alunoId" formControlName="alunoId">
+          <option [ngValue]="null" disabled>Selecione um aluno</option>
+          @for (aluno of alunos(); track aluno.id) {
+            <option [ngValue]="aluno.id">{{ aluno.nome }} — {{ aluno.cpf }}</option>
+          }
+        </select>
+        @if (fieldError('alunoId'); as error) {
+          <span class="matricula-form__error">{{ error }}</span>
+        }
+      </div>
+
+      <div class="matricula-form__field">
+        <label for="turmaId">Turma</label>
+        <select id="turmaId" formControlName="turmaId">
+          <option [ngValue]="null" disabled>Selecione uma turma</option>
+          @for (turma of turmas(); track turma.id) {
+            <option [ngValue]="turma.id">{{ turmaLabel(turma) }}</option>
+          }
+        </select>
+        @if (fieldError('turmaId'); as error) {
+          <span class="matricula-form__error">{{ error }}</span>
+        }
+      </div>
+
+      <div class="matricula-form__actions">
+        <a routerLink="/matriculas" class="matricula-form__cancelar">Cancelar</a>
+        <button type="submit" class="matricula-form__salvar" [disabled]="saving()">
+          {{ saving() ? 'Salvando...' : 'Solicitar matrícula' }}
+        </button>
+      </div>
+    </form>
+  }
+</section>

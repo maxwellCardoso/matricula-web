@@ -1,6 +1,6 @@
 # GUIDELINES — Padrões de Arquitetura e Desenvolvimento
 
-> Complementa o `specs.md` (regras de negócio). Este documento define
+> Complementa o `specs-backend.md` (regras de negócio). Este documento define
 > **como** o código deve ser estruturado, nomeado e testado. 
 ---
 
@@ -68,12 +68,6 @@ public record MatriculaResponseDTO(
 - **Exceptions customizadas**: não usar Lombok nem record — construtor
   explícito é mais claro quando a exception carrega o `código` do erro
   além da mensagem.
-- **Não usar** `@Builder` em entidades JPA que tenham relacionamentos
-  bidirecionais — facilita construir objetos em estado inconsistente
-  sem passar pelos métodos que mantêm a relação nos dois lados.
-- `@Builder` continua permitido em: DTOs, entidades sem relacionamentos
-  bidirecionais, ou entidades onde o relacionamento é unidirecional
-  (apenas um lado conhece o outro).
 
 ---
 
@@ -106,21 +100,18 @@ public record MatriculaResponseDTO(
 ## 5. Estratégia de testes
 
 **Unitários (service, com Mockito mockando repository)**
-- Cobrir os 10 casos formais do specs.md (seção 3), item por item
+- Cobrir os 10 casos formais do specs-backend.md (seção 3), item por item
 - Cada regra de negócio = pelo menos 1 teste que a viola (caminho de erro)
   e 1 que a cumpre (caminho feliz)
 - Nome de teste descritivo: `deveLancarVagaIndisponivel_quandoTurmaSemVaga()`
 
 **Integração (API + banco real via Testcontainers)**
 - Fluxo completo: criar aluno → criar turma → matricular → confirmar → cancelar
-- Caso de concorrência da última vaga (specs.md US08) —  vale a pena ter um teste dedicado disparando
+- Caso de concorrência da última vaga (specs-backend.md US08) —  vale a pena ter um teste dedicado disparando
   confirmações concorrentes (ex: `ExecutorService` com N threads) e
   verificando que só uma teve sucesso.
 - Validação de payload inválido (400) e entidade inexistente (404)
 
-**O que não precisa de teste dedicado**
-- CRUDs simples de Curso/Disciplina sem regra de negócio associada — um
-  teste de integração básico por entidade é suficiente.
 
 ---
 
@@ -138,7 +129,7 @@ public record MatriculaResponseDTO(
    exatamente as entidades, incluindo constraint única `(aluno_id, turma_id)`.
    As migrations devem ser adicionadas na pasta /src/main/resources/db/migration
 3. Repositories
-4. Services + testes unitários (regra por regra, seguindo SPEC.md seção 3)
+4. Services + testes unitários (regra por regra, seguindo specs-backend.md seção 3)
 5. DTOs + Controllers
 6. `@RestControllerAdvice` + exceptions
 7. Testes de integração (fluxo completo + concorrência)
@@ -151,20 +142,8 @@ pedir controller antes de fechar a regra no service.
 
 ---
 
-## 8. Frontend (Angular) — convenções mínimas
-
-- Um serviço Angular por entidade (`aluno.service.ts`, `matricula.service.ts`),
-  isolando `HttpClient` dos componentes.
-- Um `HttpInterceptor` central para tratar erros da API e mapear o `codigo`
-  do corpo de erro para mensagens de UI.
-- Componentes separados por tela (listagem, formulário, detalhe), evitar
-  componente único fazendo tudo.
-
----
-
 ## 9. O que evitar 
 
 - Múltiplos módulos/serviços, mensageria real, arquitetura distribuída.
-- Camada de "use cases" separada do service sem necessidade real.
 - Regras de negócio dentro de controller ou de entidade — sempre no service.
 - Complexidade desnecessária.

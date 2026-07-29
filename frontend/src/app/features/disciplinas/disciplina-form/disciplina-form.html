@@ -1,0 +1,66 @@
+<section class="disciplina-form">
+  <header class="disciplina-form__header">
+    <h1>{{ isEdit() ? 'Editar disciplina' : 'Nova disciplina' }}</h1>
+    <a routerLink="/disciplinas" class="disciplina-form__voltar">Voltar</a>
+  </header>
+
+  @if (loading()) {
+    <app-loading />
+  } @else {
+    <form class="disciplina-form__form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <div class="disciplina-form__field">
+        <label for="codDisciplina">Código</label>
+        <input id="codDisciplina" type="text" formControlName="codDisciplina" autocomplete="off" />
+        @if (fieldError('codDisciplina'); as error) {
+          <span class="disciplina-form__error">{{ error }}</span>
+        }
+      </div>
+
+      <div class="disciplina-form__field">
+        <label for="nome">Nome</label>
+        <input id="nome" type="text" formControlName="nome" autocomplete="off" />
+        @if (fieldError('nome'); as error) {
+          <span class="disciplina-form__error">{{ error }}</span>
+        }
+      </div>
+
+      <div class="disciplina-form__field">
+        <label for="cursoId">Curso</label>
+        <select id="cursoId" formControlName="cursoId">
+          <option [ngValue]="null" disabled>Selecione um curso</option>
+          @for (curso of cursos(); track curso.id) {
+            <option [ngValue]="curso.id">{{ curso.codCurso }} — {{ curso.nome }}</option>
+          }
+        </select>
+        @if (fieldError('cursoId'); as error) {
+          <span class="disciplina-form__error">{{ error }}</span>
+        }
+      </div>
+
+      <div class="disciplina-form__row">
+        <div class="disciplina-form__field">
+          <label for="ano">Ano</label>
+          <input id="ano" type="number" formControlName="ano" inputmode="numeric" />
+          @if (fieldError('ano'); as error) {
+            <span class="disciplina-form__error">{{ error }}</span>
+          }
+        </div>
+
+        <div class="disciplina-form__field">
+          <label for="periodo">Período</label>
+          <input id="periodo" type="number" formControlName="periodo" inputmode="numeric" />
+          @if (fieldError('periodo'); as error) {
+            <span class="disciplina-form__error">{{ error }}</span>
+          }
+        </div>
+      </div>
+
+      <div class="disciplina-form__actions">
+        <a routerLink="/disciplinas" class="disciplina-form__cancelar">Cancelar</a>
+        <button type="submit" class="disciplina-form__salvar" [disabled]="saving()">
+          {{ saving() ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </form>
+  }
+</section>

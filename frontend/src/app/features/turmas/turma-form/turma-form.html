@@ -1,0 +1,50 @@
+<section class="turma-form">
+  <header class="turma-form__header">
+    <h1>{{ isEdit() ? 'Editar turma' : 'Nova turma' }}</h1>
+    <a routerLink="/turmas" class="turma-form__voltar">Voltar</a>
+  </header>
+
+  @if (loading()) {
+    <app-loading />
+  } @else {
+    <form class="turma-form__form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <div class="turma-form__field">
+        <label for="codTurma">Código</label>
+        <input id="codTurma" type="text" formControlName="codTurma" autocomplete="off" />
+        @if (fieldError('codTurma'); as error) {
+          <span class="turma-form__error">{{ error }}</span>
+        }
+      </div>
+
+      <div class="turma-form__field">
+        <label for="disciplinaId">Disciplina</label>
+        <select id="disciplinaId" formControlName="disciplinaId">
+          <option [ngValue]="null" disabled>Selecione uma disciplina</option>
+          @for (disciplina of disciplinas(); track disciplina.id) {
+            <option [ngValue]="disciplina.id">
+              {{ disciplina.codDisciplina }} — {{ disciplina.nome }}
+            </option>
+          }
+        </select>
+        @if (fieldError('disciplinaId'); as error) {
+          <span class="turma-form__error">{{ error }}</span>
+        }
+      </div>
+
+      <div class="turma-form__field">
+        <label for="vagasTotais">Vagas totais</label>
+        <input id="vagasTotais" type="number" formControlName="vagasTotais" inputmode="numeric" min="1" />
+        @if (fieldError('vagasTotais'); as error) {
+          <span class="turma-form__error">{{ error }}</span>
+        }
+      </div>
+
+      <div class="turma-form__actions">
+        <a routerLink="/turmas" class="turma-form__cancelar">Cancelar</a>
+        <button type="submit" class="turma-form__salvar" [disabled]="saving()">
+          {{ saving() ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </form>
+  }
+</section>

@@ -1,0 +1,64 @@
+<section class="aluno-list">
+  <header class="aluno-list__header">
+    <h1>Alunos</h1>
+    <a routerLink="/alunos/novo" class="aluno-list__novo">Novo aluno</a>
+  </header>
+
+  @if (loading()) {
+    <app-loading />
+  } @else if (alunos().length === 0) {
+    <p class="aluno-list__empty">Nenhum aluno cadastrado</p>
+  } @else {
+    <div class="aluno-list__table-wrapper">
+      <table class="aluno-list__table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>E-mail</th>
+            <th>CPF</th>
+            <th>Endereço</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (aluno of alunos(); track aluno.id) {
+            <tr>
+              <td>{{ aluno.nome }}</td>
+              <td>{{ aluno.email }}</td>
+              <td>{{ aluno.cpf }}</td>
+              <td>{{ aluno.endereco || '—' }}</td>
+              <td class="aluno-list__actions">
+                <div class="aluno-list__actions-inner">
+                  <a [routerLink]="['/alunos', aluno.id, 'matriculas']">Matrículas</a>
+                  <a [routerLink]="['/alunos', aluno.id, 'editar']">Editar</a>
+                  <button type="button" class="aluno-list__excluir" (click)="solicitarExclusao(aluno)">
+                    Excluir
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-pagination
+      [page]="page()"
+      [totalPages]="totalPages()"
+      [first]="first()"
+      [last]="last()"
+      (pageChange)="onPageChange($event)"
+    />
+  }
+</section>
+
+<app-confirm-dialog
+  [open]="confirmOpen()"
+  title="Excluir aluno"
+  [message]="confirmMessage()"
+  confirmLabel="Excluir"
+  busyLabel="Excluindo..."
+  [busy]="excluindo()"
+  (confirm)="confirmarExclusao()"
+  (cancel)="cancelarExclusao()"
+/>

@@ -1,0 +1,79 @@
+<section class="turma-list">
+  <header class="turma-list__header">
+    <h1>Turmas</h1>
+    <a routerLink="/turmas/novo" class="turma-list__novo">Nova turma</a>
+  </header>
+
+  @if (loading()) {
+    <app-loading />
+  } @else if (turmas().length === 0) {
+    <p class="turma-list__empty">Nenhuma turma cadastrada</p>
+  } @else {
+    <div class="turma-list__table-wrapper">
+      <table class="turma-list__table">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Cód. disciplina</th>
+            <th>Disciplina</th>
+            <th>Vagas</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (turma of turmas(); track turma.id) {
+            <tr>
+              <td>{{ turma.codTurma }}</td>
+              <td>{{ turma.codDisciplina }}</td>
+              <td>{{ turma.nomeDisciplina }}</td>
+              <td class="turma-list__vagas">
+                {{ turma.vagasOcupadas }} / {{ turma.vagasTotais }}
+                <span class="turma-list__vagas-disponiveis">
+                  ({{ vagasDisponiveis(turma) }} disponíveis)
+                </span>
+              </td>
+              <td>
+                <span
+                  class="turma-list__badge"
+                  [class.turma-list__badge--aberta]="turma.status === 'ABERTA'"
+                  [class.turma-list__badge--fechada]="turma.status === 'FECHADA'"
+                >
+                  {{ turma.status === 'ABERTA' ? 'Aberta' : 'Fechada' }}
+                </span>
+              </td>
+              <td class="turma-list__actions">
+                <div class="turma-list__actions-inner">
+                  <a [routerLink]="['/turmas', turma.id, 'matriculas']">Matrículas</a>
+                  <a [routerLink]="['/turmas', turma.id, 'editar']">Editar</a>
+                  <button type="button" class="turma-list__excluir" (click)="solicitarExclusao(turma)">
+                    Excluir
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-pagination
+      [page]="page()"
+      [totalPages]="totalPages()"
+      [first]="first()"
+      [last]="last()"
+      (pageChange)="onPageChange($event)"
+    />
+  }
+</section>
+
+<app-confirm-dialog
+  [open]="confirmOpen()"
+  title="Excluir turma"
+  [message]="confirmMessage()"
+  confirmLabel="Excluir"
+  busyLabel="Excluindo..."
+  [busy]="excluindo()"
+  (confirm)="confirmarExclusao()"
+  (cancel)="cancelarExclusao()"
+/>

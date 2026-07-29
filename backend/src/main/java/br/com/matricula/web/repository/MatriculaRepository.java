@@ -18,6 +18,8 @@ public interface MatriculaRepository extends JpaRepository<Matricula, Long> {
 
 	boolean existsByAlunoIdAndTurmaIdAndStatusNot(Long alunoId, Long turmaId, StatusMatricula status);
 
+	Optional<Matricula> findByAlunoIdAndTurmaId(Long alunoId, Long turmaId);
+
 	@Query("""
 			SELECT new br.com.matricula.web.dto.response.MatriculaResponseDTO(
 				m.id,

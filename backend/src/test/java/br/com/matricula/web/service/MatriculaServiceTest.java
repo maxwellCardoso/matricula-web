@@ -64,6 +64,8 @@ class MatriculaServiceTest {
 		when(turmaRepository.findById(request.turmaId())).thenReturn(Optional.of(turma));
 		when(matriculaRepository.existsByAlunoIdAndTurmaIdAndStatusNot(
 				request.alunoId(), request.turmaId(), StatusMatricula.CANCELADA)).thenReturn(false);
+		when(matriculaRepository.findByAlunoIdAndTurmaId(request.alunoId(), request.turmaId()))
+				.thenReturn(Optional.empty());
 		when(matriculaRepository.save(any(Matricula.class))).thenAnswer(invocation -> {
 			Matricula matricula = invocation.getArgument(0);
 			matricula.setId(100L);
@@ -151,6 +153,30 @@ class MatriculaServiceTest {
 				.isEqualTo("MATRICULA_DUPLICADA");
 
 		verify(matriculaRepository, never()).save(any());
+	}
+
+	@Test
+	void deveReativarMatriculaCancelada_quandoMatricularNovamente() {
+		MatriculaRequestDTO request = new MatriculaRequestDTO(1L, 10L);
+		Aluno aluno = alunoExistente(request.alunoId());
+		Turma turma = turmaExistente(request.turmaId(), StatusTurma.ABERTA, 5, 30);
+		Matricula matriculaCancelada = matriculaComStatus(100L, request.alunoId(), request.turmaId(),
+				StatusMatricula.CANCELADA);
+
+		when(alunoRepository.findById(request.alunoId())).thenReturn(Optional.of(aluno));
+		when(turmaRepository.findById(request.turmaId())).thenReturn(Optional.of(turma));
+		when(matriculaRepository.existsByAlunoIdAndTurmaIdAndStatusNot(
+				request.alunoId(), request.turmaId(), StatusMatricula.CANCELADA)).thenReturn(false);
+		when(matriculaRepository.findByAlunoIdAndTurmaId(request.alunoId(), request.turmaId()))
+				.thenReturn(Optional.of(matriculaCancelada));
+		when(matriculaRepository.save(matriculaCancelada)).thenReturn(matriculaCancelada);
+
+		MatriculaResponseDTO response = matriculaService.matricular(request);
+
+		assertThat(response.id()).isEqualTo(100L);
+		assertThat(response.status()).isEqualTo(StatusMatricula.PENDENTE);
+		assertThat(matriculaCancelada.getStatus()).isEqualTo(StatusMatricula.PENDENTE);
+		verify(matriculaRepository).save(matriculaCancelada);
 	}
 
 	@Test

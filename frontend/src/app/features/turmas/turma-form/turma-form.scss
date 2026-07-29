@@ -1,0 +1,110 @@
+.turma-form {
+  max-width: 36rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.turma-form__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.turma-form__header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.turma-form__voltar {
+  color: #2563eb;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.turma-form__voltar:hover {
+  text-decoration: underline;
+}
+
+.turma-form__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.turma-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.turma-form__field label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #334155;
+}
+
+.turma-form__field input,
+.turma-form__field select {
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.375rem;
+  font: inherit;
+  color: #0f172a;
+  background: #fff;
+}
+
+.turma-form__field input:focus,
+.turma-form__field select:focus {
+  outline: 2px solid #93c5fd;
+  outline-offset: 1px;
+  border-color: #2563eb;
+}
+
+.turma-form__error {
+  font-size: 0.8125rem;
+  color: #dc2626;
+}
+
+.turma-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.turma-form__cancelar {
+  padding: 0.5rem 0.875rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.375rem;
+  color: #334155;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.turma-form__salvar {
+  padding: 0.5rem 0.875rem;
+  border: none;
+  border-radius: 0.375rem;
+  background: #2563eb;
+  color: #fff;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.turma-form__salvar:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.turma-form__salvar:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}

@@ -1,0 +1,156 @@
+<section class="matricula-list">
+  <header class="matricula-list__header">
+    <div class="matricula-list__title-group">
+      @if (context() === 'aluno' && alunoHeader(); as aluno) {
+        <h1>Matrículas — {{ aluno.nome }}</h1>
+        <p class="matricula-list__subtitle">CPF: {{ aluno.cpf }}</p>
+      } @else if (context() === 'turma' && turmaHeader(); as turma) {
+        <h1>Matrículas — {{ turma.codTurma }}</h1>
+        <p class="matricula-list__subtitle">
+          {{ turma.nomeDisciplina }} · Vagas: {{ turma.vagasOcupadas }}/{{ turma.vagasTotais }}
+          ({{ vagasDisponiveis(turma) }} disponíveis)
+        </p>
+      } @else {
+        <h1>Matrículas</h1>
+      }
+    </div>
+
+    <div class="matricula-list__header-actions">
+      @if (context() === 'aluno') {
+        <a routerLink="/alunos" class="matricula-list__voltar">Voltar aos alunos</a>
+      } @else if (context() === 'turma') {
+        <a routerLink="/turmas" class="matricula-list__voltar">Voltar às turmas</a>
+      }
+      <a routerLink="/matriculas/novo" class="matricula-list__novo">Nova matrícula</a>
+    </div>
+  </header>
+
+  @if (context() === 'all') {
+    <div class="matricula-list__filters">
+      <div class="matricula-list__filter">
+        <label for="filtroAluno">Aluno</label>
+        <select id="filtroAluno" [value]="filtroAlunoId() ?? ''" (change)="onFiltroAlunoChange($any($event.target).value)">
+          <option value="">Todos</option>
+          @for (aluno of alunosFiltro(); track aluno.id) {
+            <option [value]="aluno.id">{{ aluno.nome }} — {{ aluno.cpf }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="matricula-list__filter">
+        <label for="filtroTurma">Turma</label>
+        <select id="filtroTurma" [value]="filtroTurmaId() ?? ''" (change)="onFiltroTurmaChange($any($event.target).value)">
+          <option value="">Todas</option>
+          @for (turma of turmasFiltro(); track turma.id) {
+            <option [value]="turma.id">{{ turma.codTurma }} — {{ turma.nomeDisciplina }}</option>
+          }
+        </select>
+      </div>
+
+      @if (filtroAlunoId() !== null || filtroTurmaId() !== null) {
+        <button type="button" class="matricula-list__limpar-filtros" (click)="limparFiltros()">
+          Limpar filtros
+        </button>
+      }
+    </div>
+  }
+
+  @if (loading()) {
+    <app-loading />
+  } @else if (matriculas().length === 0) {
+    <p class="matricula-list__empty">Nenhuma matrícula encontrada</p>
+  } @else {
+    <div class="matricula-list__table-wrapper">
+      <table class="matricula-list__table">
+        <thead>
+          <tr>
+            <th>Aluno</th>
+            <th>CPF</th>
+            <th>Turma</th>
+            <th>Status</th>
+            <th>Criada em</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (matricula of matriculas(); track matricula.id) {
+            <tr>
+              <td>{{ matricula.nomeAluno }}</td>
+              <td>{{ matricula.cpfAluno }}</td>
+              <td>{{ matricula.codTurma }}</td>
+              <td>
+                <span
+                  class="matricula-list__badge"
+                  [class.matricula-list__badge--pendente]="matricula.status === 'PENDENTE'"
+                  [class.matricula-list__badge--confirmada]="matricula.status === 'CONFIRMADA'"
+                  [class.matricula-list__badge--cancelada]="matricula.status === 'CANCELADA'"
+                >
+                  {{
+                    matricula.status === 'PENDENTE'
+                      ? 'Pendente'
+                      : matricula.status === 'CONFIRMADA'
+                        ? 'Confirmada'
+                        : 'Cancelada'
+                  }}
+                </span>
+              </td>
+              <td>{{ matricula.dataCriacao | date: 'dd/MM/yyyy HH:mm' }}</td>
+              <td class="matricula-list__actions">
+                <div class="matricula-list__actions-inner">
+                  @if (podeConfirmar(matricula)) {
+                    <button
+                      type="button"
+                      class="matricula-list__confirmar"
+                      (click)="solicitarConfirmacao(matricula)"
+                    >
+                      Confirmar
+                    </button>
+                  }
+                  @if (podeCancelar(matricula)) {
+                    <button
+                      type="button"
+                      class="matricula-list__cancelar"
+                      (click)="solicitarCancelamento(matricula)"
+                    >
+                      Cancelar
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-pagination
+      [page]="page()"
+      [totalPages]="totalPages()"
+      [first]="first()"
+      [last]="last()"
+      (pageChange)="onPageChange($event)"
+    />
+  }
+</section>
+
+<app-confirm-dialog
+  [open]="confirmDialogOpen()"
+  title="Confirmar matrícula"
+  [message]="confirmMessage()"
+  confirmLabel="Confirmar"
+  busyLabel="Confirmando..."
+  [busy]="processando()"
+  (confirm)="confirmarMatricula()"
+  (cancel)="fecharConfirmacao()"
+/>
+
+<app-confirm-dialog
+  [open]="cancelDialogOpen()"
+  title="Cancelar matrícula"
+  [message]="cancelMessage()"
+  confirmLabel="Cancelar matrícula"
+  busyLabel="Cancelando..."
+  [busy]="processando()"
+  (confirm)="cancelarMatricula()"
+  (cancel)="fecharCancelamento()"
+/>

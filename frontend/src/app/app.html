@@ -1,0 +1,23 @@
+<div class="app-shell">
+  <header class="app-shell__header">
+    <a class="app-shell__brand" routerLink="/">Matrícula Web</a>
+
+    <nav class="app-shell__nav" aria-label="Navegação principal">
+      @for (item of navItems; track item.path) {
+        <a
+          class="app-shell__nav-link"
+          [class.app-shell__nav-link--active]="isNavActive(item)"
+          [routerLink]="item.path"
+        >
+          {{ item.label }}
+        </a>
+      }
+    </nav>
+  </header>
+
+  <app-alert />
+
+  <main class="app-shell__main">
+    <router-outlet />
+  </main>
+</div>

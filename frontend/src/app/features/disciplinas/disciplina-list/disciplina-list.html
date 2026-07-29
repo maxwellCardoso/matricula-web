@@ -1,0 +1,71 @@
+<section class="disciplina-list">
+  <header class="disciplina-list__header">
+    <h1>Disciplinas</h1>
+    <a routerLink="/disciplinas/novo" class="disciplina-list__novo">Nova disciplina</a>
+  </header>
+
+  @if (loading()) {
+    <app-loading />
+  } @else if (disciplinas().length === 0) {
+    <p class="disciplina-list__empty">Nenhuma disciplina cadastrada</p>
+  } @else {
+    <div class="disciplina-list__table-wrapper">
+      <table class="disciplina-list__table">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Nome</th>
+            <th>Cód. curso</th>
+            <th>Curso</th>
+            <th>Ano</th>
+            <th>Período</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (disciplina of disciplinas(); track disciplina.id) {
+            <tr>
+              <td>{{ disciplina.codDisciplina }}</td>
+              <td>{{ disciplina.nome }}</td>
+              <td>{{ disciplina.codCurso }}</td>
+              <td>{{ disciplina.nomeCurso }}</td>
+              <td>{{ disciplina.ano }}</td>
+              <td>{{ disciplina.periodo }}</td>
+              <td class="disciplina-list__actions">
+                <div class="disciplina-list__actions-inner">
+                  <a [routerLink]="['/disciplinas', disciplina.id, 'editar']">Editar</a>
+                  <button
+                    type="button"
+                    class="disciplina-list__excluir"
+                    (click)="solicitarExclusao(disciplina)"
+                  >
+                    Excluir
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-pagination
+      [page]="page()"
+      [totalPages]="totalPages()"
+      [first]="first()"
+      [last]="last()"
+      (pageChange)="onPageChange($event)"
+    />
+  }
+</section>
+
+<app-confirm-dialog
+  [open]="confirmOpen()"
+  title="Excluir disciplina"
+  [message]="confirmMessage()"
+  confirmLabel="Excluir"
+  busyLabel="Excluindo..."
+  [busy]="excluindo()"
+  (confirm)="confirmarExclusao()"
+  (cancel)="cancelarExclusao()"
+/>

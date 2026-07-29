@@ -72,8 +72,10 @@
 
 > **Listagem**: inclui também `nomeAluno`, `emailAluno`, `cpfAluno` e `codTurma`.
 
-**Constraint única**: `(alunoId, turmaId)` — impede matrícula duplicada a
-nível de banco, não só de aplicação.
+**Constraint única**: `(alunoId, turmaId)` — uma linha por par aluno/turma.
+Duplicidade de matrícula **ativa** (status ≠ CANCELADA) é bloqueada na aplicação.
+Se existir matrícula CANCELADA para o par, uma nova solicitação **reativa** o registro
+(status → PENDENTE), sem violar a constraint.
 
 ---
 

@@ -1,0 +1,61 @@
+<section class="curso-list">
+  <header class="curso-list__header">
+    <h1>Cursos</h1>
+    <a routerLink="/cursos/novo" class="curso-list__novo">Novo curso</a>
+  </header>
+
+  @if (loading()) {
+    <app-loading />
+  } @else if (cursos().length === 0) {
+    <p class="curso-list__empty">Nenhum curso cadastrado</p>
+  } @else {
+    <div class="curso-list__table-wrapper">
+      <table class="curso-list__table">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Nome</th>
+            <th>Descrição</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (curso of cursos(); track curso.id) {
+            <tr>
+              <td>{{ curso.codCurso }}</td>
+              <td>{{ curso.nome }}</td>
+              <td>{{ curso.descricao || '—' }}</td>
+              <td class="curso-list__actions">
+                <div class="curso-list__actions-inner">
+                  <a [routerLink]="['/cursos', curso.id, 'editar']">Editar</a>
+                  <button type="button" class="curso-list__excluir" (click)="solicitarExclusao(curso)">
+                    Excluir
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-pagination
+      [page]="page()"
+      [totalPages]="totalPages()"
+      [first]="first()"
+      [last]="last()"
+      (pageChange)="onPageChange($event)"
+    />
+  }
+</section>
+
+<app-confirm-dialog
+  [open]="confirmOpen()"
+  title="Excluir curso"
+  [message]="confirmMessage()"
+  confirmLabel="Excluir"
+  busyLabel="Excluindo..."
+  [busy]="excluindo()"
+  (confirm)="confirmarExclusao()"
+  (cancel)="cancelarExclusao()"
+/>
