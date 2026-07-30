@@ -26,14 +26,19 @@ import br.com.matricula.web.dto.request.AlunoRequestDTO;
 import br.com.matricula.web.dto.response.AlunoResponseDTO;
 import br.com.matricula.web.dto.response.PageResponseDTO;
 import br.com.matricula.web.exception.EntidadeNaoEncontradaException;
+import br.com.matricula.web.exception.ExclusaoBloqueadaVinculoAtivoException;
 import br.com.matricula.web.exception.RecursoDuplicadoException;
 import br.com.matricula.web.repository.AlunoRepository;
+import br.com.matricula.web.repository.MatriculaRepository;
 
 @ExtendWith(MockitoExtension.class)
 class AlunoServiceTest {
 
 	@Mock
 	private AlunoRepository alunoRepository;
+
+	@Mock
+	private MatriculaRepository matriculaRepository;
 
 	@InjectMocks
 	private AlunoService alunoService;
@@ -180,10 +185,26 @@ class AlunoServiceTest {
 		Long id = 1L;
 		Aluno aluno = alunoExistente(id);
 		when(alunoRepository.findById(id)).thenReturn(Optional.of(aluno));
+		when(matriculaRepository.existsByAlunoId(id)).thenReturn(false);
 
 		alunoService.remover(id);
 
 		verify(alunoRepository).delete(aluno);
+	}
+
+	@Test
+	void deveLancarExclusaoBloqueada_quandoAlunoTemMatriculasVinculadas() {
+		Long id = 1L;
+		Aluno aluno = alunoExistente(id);
+		when(alunoRepository.findById(id)).thenReturn(Optional.of(aluno));
+		when(matriculaRepository.existsByAlunoId(id)).thenReturn(true);
+
+		assertThatThrownBy(() -> alunoService.remover(id))
+				.isInstanceOf(ExclusaoBloqueadaVinculoAtivoException.class)
+				.extracting(ex -> ((ExclusaoBloqueadaVinculoAtivoException) ex).getCodigo())
+				.isEqualTo("EXCLUSAO_BLOQUEADA_VINCULO_ATIVO");
+
+		verify(alunoRepository, never()).delete(any());
 	}
 
 	@Test

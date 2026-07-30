@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
+import { ApiError } from '../../../core/models/api-error.model';
 import { AlunoService } from '../../../core/services/aluno.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
@@ -78,9 +79,14 @@ export class AlunoList implements OnInit {
           this.notificationService.showSuccess('Aluno excluído com sucesso.');
           this.recarregarAposExclusao();
         },
-        error: () => {
-          // 404 (e demais erros) já tratados pelo interceptor com mensagem amigável
+        error: (error: ApiError) => {
           this.fecharDialogo();
+
+          const apiError = error.apiError;
+          if (apiError?.codigo === 'EXCLUSAO_BLOQUEADA_VINCULO_ATIVO') {
+            this.notificationService.showError(apiError.mensagemAmigavel);
+          }
+
           this.carregar();
         },
       });

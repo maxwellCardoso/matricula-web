@@ -10,16 +10,20 @@ import br.com.matricula.web.dto.request.AlunoRequestDTO;
 import br.com.matricula.web.dto.response.AlunoResponseDTO;
 import br.com.matricula.web.dto.response.PageResponseDTO;
 import br.com.matricula.web.exception.EntidadeNaoEncontradaException;
+import br.com.matricula.web.exception.ExclusaoBloqueadaVinculoAtivoException;
 import br.com.matricula.web.exception.RecursoDuplicadoException;
 import br.com.matricula.web.repository.AlunoRepository;
+import br.com.matricula.web.repository.MatriculaRepository;
 
 @Service
 public class AlunoService {
 
 	private final AlunoRepository alunoRepository;
+	private final MatriculaRepository matriculaRepository;
 
-	public AlunoService(AlunoRepository alunoRepository) {
+	public AlunoService(AlunoRepository alunoRepository, MatriculaRepository matriculaRepository) {
 		this.alunoRepository = alunoRepository;
+		this.matriculaRepository = matriculaRepository;
 	}
 
 	@Transactional
@@ -56,6 +60,12 @@ public class AlunoService {
 	@Transactional
 	public void remover(Long id) {
 		Aluno aluno = buscarAluno(id);
+
+		if (matriculaRepository.existsByAlunoId(id)) {
+			throw new ExclusaoBloqueadaVinculoAtivoException(
+					"Não é possível excluir o aluno pois existem matrículas vinculadas.");
+		}
+
 		alunoRepository.delete(aluno);
 	}
 
